@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DV Photo Validator</title>
+<link rel="stylesheet" href="style.css"></head><body>
+<div id="win">
+ <div id="tb"><span>ASTAR Photo Validator, ver. 8.1</span><span class="wc"><i>&#8212;</i><i>&#9744;</i><i id="x">&#10005;</i></span></div>
+ <div id="body">
+  <h1><b>*ASTAR* ПРОВЕРКА ФОТО</b> <em>ВИЗА И ЛОТЕРЕЯ ГРИН КАРТА</em></h1>
+  <div id="bar">
+   <button id="bLoad">Загрузить</button><button id="bCrop">Обрезать</button><button id="bCheck" class="def">Проверить</button><button id="bSave">Сохранить</button><button id="bClear">Очистить</button><button id="bHelp">Инструкция</button><button id="bExit">Выход</button>
+  </div>
+  <div id="rot"><span>Поворот</span><button id="rL" title="Повернуть влево на 0,5°">&#8634;</button><input type="range" id="rS" min="-15" max="15" step="0.1" value="0"><button id="rR" title="Повернуть вправо на 0,5°">&#8635;</button><output id="rV">0.0°</output><button id="rZ" title="Сбросить поворот">Сброс</button></div>
+  <div id="main">
+   <div id="view"><canvas id="cv" width="896" height="896"></canvas><div id="hint"></div><div id="banner" hidden></div><button id="bEnh" hidden title="Исправить фото: освещение, фон, детализация">&#10024; Исправить</button></div>
+   <div id="panel"><ul id="list"></ul>
+    <div id="sw">
+     <label class="sw"><span>виза</span><input type="checkbox" id="mLot" checked><i></i><span>лотерея</span></label>
+     <label class="sw"><span>скан</span><input type="checkbox" id="mPho" checked><i></i><span>фото</span></label>
+    </div></div>
+  </div>
+ </div>
+</div>
+<input type="file" id="f" accept="image/*" hidden>
+<dialog id="dlg"><h3>Инструкция</h3>
+<ol><li>Нажмите «Загрузить» (или перетащите фото в окно).</li>
+<li>Если человек сидит не ровно — сначала поверните фото ползунком «Поворот» или кнопками ↺ ↻ (шаг 0,5°) так, чтобы глаза лежали на одной горизонтали. Поворот доступен только до обрезки.</li>
+<li>Линии уже стоят примерно — перетащите их мышью: красная — верх головы (с волосами), синяя — подбородок, зелёная — линия глаз, пунктир — ось лица (его можно двигать влево/вправо).</li>
+<li>«Обрезать» — квадратный кадр: лотерея — 600×600, виза — 900×900 (меняется в SIZE в app.js); голова ~60%, линия глаз ~62% от низа, выравнивание наклона. Режим выбирайте до обрезки. Линии можно подправить и снова нажать «Проверить».</li>
+<li>«Проверить» — запуск тестов. «Сохранить» — скачает обрезанное фото и отчёт, оба в JPEG.</li></ol>
+<p><b>Линии:</b> красная — макушка, синяя — подбородок, зелёная — глаза, серая зона — допустимая высота глаз (56–69% от низа), пунктир — центр кадра.</p>
+<p><b>Требования:</b> квадрат: лотерея — ровно 600×600 px, виза — 600–1200 px; JPEG, до 240 КБ, сжатие до 20:1, голова 50–69% высоты, глаза 56–69% от низа, sRGB 24 bit, светлый однородный фон, фото не старше 6 месяцев.</p>
+<p><b>Эвристики:</b> открытые глаза, красные глаза, тени, наклон/поворот, подмена фона определяются приблизительно — проверяйте глазами.</p>
+<button id="dOk" class="def">Закрыть</button></dialog>
+<script src="app.js"></script></body></html>
