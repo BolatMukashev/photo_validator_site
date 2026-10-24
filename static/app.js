@@ -35,6 +35,7 @@ const ENH_URL='/api/enhance';   // адрес серверного прокси 
 const BG_CLIP_MAX=.99;       // «засвечен»: доля полностью белых пикселей фона выше этого
 /* ============================================================== */
 const $=s=>document.querySelector(s),cv=$('#cv'),c=cv.getContext('2d'),VIEW=448;
+const HEAD='"Montserrat","Arial Black",Arial,sans-serif',BODY='"Inter",Arial,Helvetica,sans-serif',MONO='"IBM Plex Mono",ui-monospace,Menlo,monospace',FONT=BODY,COL={ok:'#008000',bad:'#FF0000',warn:'#FFA500',na:'#999999',top:'#FF0000',chin:'#000000',eye:'#008000',axis:'#000000',bg:'#FFFFFF',sunken:'#F0F0F0',edge:'#000000',text:'#000000',muted:'#444444'};   // токены RawBlock
 const LAB=['Ширина фото','Высота фото','Размер файла','Степень компрессии','Горизонт. разрешение','Вертикал. разрешение','Верхняя точка головы','Нижняя точка головы','Размер головы','Линия глаз','Высота уровня глаз','Оба глаза открыты','Эффект красных глаз','Наклон или поворот головы','Лицо по центру фото','Тени на лице (боковой свет)','Формат фото','Цветовое пространство','Глубина цвета','Фон ровный, однородный','Фон нейтрального цвета','Фон светлый','Фон изменён или засвечен','Дата фото','Корректное имя файла'];
 const NAMES=['макушку головы','подбородок','левый глаз','правый глаз'];
 let W0=null,rotDeg=0,rotQ=0,W=null,M=null,P=[],LN=null,cxUser=false,hintOn=true,drag=null,cropped=false,res=null,busy=false,PRE=null;
@@ -116,27 +117,28 @@ function exif(v,u,t){
 /* ---------- отрисовка ---------- */
 function lay(){const s=Math.min(VIEW/W.width,VIEW/W.height);return{s,ox:(VIEW-W.width*s)/2,oy:(VIEW-W.height*s)/2}}
 function paintView(g){
-  g.fillStyle='#f0f0f0';g.fillRect(0,0,VIEW,VIEW);
-  if(!W){g.fillStyle='#888';g.font='14px Segoe UI,Arial,sans-serif';g.textAlign='center';g.fillText('Нажмите «Загрузить» или перетащите фото сюда',VIEW/2,VIEW/2);g.textAlign='left';return}
+  g.fillStyle=COL.sunken;g.fillRect(0,0,VIEW,VIEW);
+  if(!W){g.fillStyle=COL.text;g.font='13px '+MONO;g.textAlign='center';g.fillText('Нажмите «Загрузить» или перетащите фото сюда',VIEW/2,VIEW/2);g.textAlign='left';return}
   const L=lay(),h=W.height*L.s;
   g.imageSmoothingQuality='high';g.drawImage(W,L.ox,L.oy,W.width*L.s,h);
-  g.fillStyle='rgba(110,110,110,.35)';g.fillRect(0,L.oy+h*(1-EYE_MAX/100),VIEW,h*(EYE_MAX-EYE_MIN)/100);
+  g.fillStyle='rgba(0,0,0,.18)';g.fillRect(0,L.oy+h*(1-EYE_MAX/100),VIEW,h*(EYE_MAX-EYE_MIN)/100);
   if(LN){
-    const Y=v=>L.oy+v*L.s,X=v=>L.ox+v*L.s,hl=(y,col)=>{g.strokeStyle=col;g.lineWidth=1.5;g.beginPath();g.moveTo(0,y);g.lineTo(VIEW,y);g.stroke()};
-    g.lineWidth=1.2;g.strokeStyle='#17a89a';g.setLineDash([2,3]);g.beginPath();g.moveTo(X(LN.cx),0);g.lineTo(X(LN.cx),VIEW);g.stroke();g.setLineDash([]);
-    hl(Y(LN.top),'#c8323c');hl(Y(LN.chin),'#2f4fd8');hl(Y(LN.eye),'#2fbf6b');
+    const Y=v=>L.oy+v*L.s,X=v=>L.ox+v*L.s,hl=(y,col)=>{g.beginPath();g.moveTo(0,y);g.lineTo(VIEW,y);g.lineWidth=3.5;g.strokeStyle='rgba(255,255,255,.9)';g.stroke();g.lineWidth=1.5;g.strokeStyle=col;g.stroke()};   // тёмная подложка — линии видны и на белом фоне
+    g.setLineDash([3,4]);g.beginPath();g.moveTo(X(LN.cx),0);g.lineTo(X(LN.cx),VIEW);g.lineWidth=3.4;g.strokeStyle='rgba(255,255,255,.9)';g.stroke();g.lineWidth=1.4;g.strokeStyle=COL.axis;g.stroke();g.setLineDash([]);
+    hl(Y(LN.top),COL.top);hl(Y(LN.chin),COL.chin);hl(Y(LN.eye),COL.eye);
   }
 }
 function draw(){c.setTransform(2,0,0,2,0,0);paintView(c)}
 function sync(){
   ['#rS','#rL','#rR','#rZ'].forEach(s=>$(s).disabled=!W0||cropped||busy);
-  const hn=$('#hint');hn.textContent=W&&hintOn?'Перетаскивайте линии: красная — макушка, синяя — подбородок, зелёная — глаза, пунктир — ось лица':'';hn.hidden=!hn.textContent;
+  const hn=$('#hint');hn.textContent=W&&hintOn?'Перетаскивайте линии: красная — макушка, чёрная — подбородок, зелёная — глаза, пунктир — ось лица':'';hn.hidden=!hn.textContent;
   const b=$('#banner');b.hidden=!res;
   const bad=!!res&&res.some(r=>r.s=='bad');
-  $('#bEnh').hidden=!(busy||bad);$('#bEnh').disabled=busy;$('#bEnh').textContent=busy?'\u23F3 Исправляем…':'\u2728 Исправить';
+  $('#bEnh').hidden=!(busy||bad);$('#bEnh').disabled=busy;$('#bEnh').textContent=busy?'Исправляем…':'Исправить';
   let nx='';   // какая кнопка — следующий шаг: загрузили → «Обрезать» → «Проверить» → «Сохранить» (или «Исправить», если есть ошибки)
   if(W&&!busy)nx=!res?(cropped?'bCheck':'bCrop'):bad?'bEnh':cropped?'bSave':'bCrop';
   ['bCrop','bCheck','bSave','bEnh'].forEach(i=>$('#'+i).classList.toggle('nx',i==nx));
+  $('#bLoad').classList.toggle('nx',!W&&!busy);   // до загрузки фото главный шаг — «Загрузить»
   $('#bCrop').classList.toggle('dim',cropped);   // уже обрезано: кнопка бледная, но нажать можно
   ['#bLoad','#bCrop','#bCheck','#bSave','#bClear'].forEach(s=>$(s).disabled=busy);
   if(res){const bad=res.some(r=>r.s=='bad');b.className=bad?'bad':'good';b.textContent=bad?'Фото не соответствует требованиям':'Фото соответствует требованиям'}
@@ -367,33 +369,34 @@ $('#bEnh').onclick=enhance;
 
 /* ---------- сохранение (JPEG + отчёт JPEG) ---------- */
 const dl=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3e3)};
-function ico(g,x,y,s){
-  g.fillStyle={ok:'#3aa655',bad:'#e53935',warn:'#f59e0b',na:'#bdbdbd'}[s];g.beginPath();g.arc(x,y,7.5,0,7);g.fill();
-  g.strokeStyle='#fff';g.lineWidth=1.8;g.beginPath();
+function ico(g,x,y,s){   // квадратный маркер статуса (без скруглений)
+  const c=COL[s];g.strokeStyle=c;g.lineWidth=2;g.strokeRect(x-6.5,y-6.5,13,13);g.lineWidth=1.8;g.beginPath();
   if(s=='ok'){g.moveTo(x-3.5,y);g.lineTo(x-1,y+3);g.lineTo(x+3.5,y-3)}
   else if(s=='bad'){g.moveTo(x-3,y-3);g.lineTo(x+3,y+3);g.moveTo(x+3,y-3);g.lineTo(x-3,y+3)}
   else if(s=='na'){g.moveTo(x-3,y);g.lineTo(x+3,y)}
-  else{g.moveTo(x,y-4);g.lineTo(x,y+1);g.moveTo(x,y+3.5);g.lineTo(x,y+4)}
+  else{g.moveTo(x,y-3.5);g.lineTo(x,y+.5);g.moveTo(x,y+3);g.lineTo(x,y+3.6)}
   g.stroke();
 }
 function reportBlob(){
   const o=document.createElement('canvas');o.width=1520;o.height=1200;const g=o.getContext('2d');g.scale(2,2);
-  g.fillStyle='#f3f3f3';g.fillRect(0,0,760,600);
-  g.font='700 17px Arial,sans-serif';g.fillStyle='#1f4e9d';g.fillText('*ASTAR* ПРОВЕРКА ФОТО',10,30);
-  const w1=g.measureText('*ASTAR* ПРОВЕРКА ФОТО ').width;g.fillStyle='#e0301e';g.fillText('ВИЗА И ЛОТЕРЕЯ ГРИН КАРТА',10+w1,30);
+  g.fillStyle=COL.bg;g.fillRect(0,0,760,600);
+  g.textAlign='left';g.fillStyle=COL.text;g.font='900 22px '+HEAD;g.fillText('ПРОВЕРКА ФОТО',10,29);
+  const w1=g.measureText('ПРОВЕРКА ФОТО   ').width;g.font='13px '+BODY;g.fillStyle=COL.muted;g.fillText('Виза и лотерея Green Card',10+w1,29);
+  g.fillStyle=COL.text;g.fillRect(0,36,760,3);
   g.save();g.translate(8,44);g.beginPath();g.rect(0,0,VIEW,VIEW);g.clip();paintView(g);
-  const bad=res.some(r=>r.s=='bad'),col=bad?'#d9261c':'#1f9d4a';
-  g.fillStyle='#fff';g.strokeStyle=col;g.lineWidth=2;g.beginPath();g.roundRect(18,VIEW-68,412,46,8);g.fill();g.stroke();
-  g.fillStyle=col;g.font='700 22px "Segoe UI",Arial,sans-serif';g.textAlign='center';g.fillText(bad?'Фото не соответствует требованиям':'Фото соответствует требованиям',224,VIEW-35);g.restore();
-  g.textAlign='left';g.fillStyle='#555';g.font='11px "Segoe UI",Arial,sans-serif';
-  g.fillText(M.name+'  |  проверено: '+new Date().toLocaleString('ru-RU')+'  |  '+($('#mLot').checked?'лотерея':'виза')+', '+($('#mPho').checked?'фото':'скан'),8,512);
-  g.fillStyle='#fff';g.strokeStyle='#d5d5d5';g.lineWidth=1;g.beginPath();g.roundRect(463.5,44.5,288,500,6);g.fill();g.stroke();
-  g.font='12px "Segoe UI",Arial,sans-serif';
-  LAB.forEach((l,i)=>{const y=60+i*18.6;ico(g,488,y,res[i].s);g.fillStyle='#222';g.fillText(l,503,y+4);g.fillText(res[i].v,675,y+4)});
-  g.strokeStyle='#ddd';g.lineWidth=1;g.beginPath();g.moveTo(464,516.5);g.lineTo(751,516.5);g.stroke();
-  const tg=(x,y,l,r,on)=>{g.font='12px "Segoe UI",Arial,sans-serif';g.fillStyle='#222';g.textAlign='right';g.fillText(l,x-5,y+4);g.textAlign='left';
-    g.fillStyle='#3aa655';g.beginPath();g.roundRect(x,y-8,34,16,8);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(on?x+26:x+8,y,6,0,7);g.fill();g.fillStyle='#222';g.fillText(r,x+40,y+4)};
-  tg(535,531,'виза','лотерея',$('#mLot').checked);tg(675,531,'скан','фото',$('#mPho').checked);
+  const bad=res.some(r=>r.s=='bad'),col=bad?COL.bad:COL.ok;
+  g.fillStyle='#fff';g.strokeStyle=col;g.lineWidth=3;g.beginPath();g.rect(18,VIEW-68,412,46);g.fill();g.stroke();
+  g.fillStyle=col;g.font='900 15px '+HEAD;g.textAlign='center';g.fillText(bad?'Фото не соответствует требованиям':'Фото соответствует требованиям',224,VIEW-40);g.restore();
+  g.strokeStyle=COL.text;g.lineWidth=4;g.strokeRect(6,42,VIEW+4,VIEW+4);
+  g.textAlign='left';g.fillStyle=COL.muted;g.font='10px '+MONO;
+  g.fillText(M.name+'  |  проверено: '+new Date().toLocaleString('ru-RU')+'  |  '+($('#mLot').checked?'лотерея':'виза')+', '+($('#mPho').checked?'фото':'скан'),8,514);
+  g.fillStyle='#fff';g.strokeStyle=COL.text;g.lineWidth=3;g.beginPath();g.rect(465.5,45.5,285,497);g.fill();g.stroke();
+  LAB.forEach((l,i)=>{const y=60+i*18.6;ico(g,486,y,res[i].s);g.font='12px '+BODY;g.fillStyle=COL.text;g.fillText(l,501,y+4);g.font='11px '+MONO;g.fillStyle=COL.text;g.fillText(res[i].v,675,y+4);
+    g.strokeStyle='#CCCCCC';g.lineWidth=1;g.beginPath();g.moveTo(477,y+9.3);g.lineTo(741,y+9.3);g.stroke()});
+  g.strokeStyle=COL.text;g.lineWidth=3;g.beginPath();g.moveTo(467,516.5);g.lineTo(750,516.5);g.stroke();
+  const cb=(x,y,l,on)=>{g.strokeStyle=COL.text;g.lineWidth=2.5;g.strokeRect(x+1,y-6,13,13);if(on){g.fillStyle=COL.text;g.fillRect(x+1,y-6,13,13);g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.moveTo(x+4,y);g.lineTo(x+7,y+3);g.lineTo(x+12,y-3);g.stroke()}
+    g.fillStyle=COL.text;g.font='600 12px '+BODY;g.fillText(l,x+22,y+4)};
+  cb(480,530,'Лотерея',$('#mLot').checked);cb(600,530,'Фото',$('#mPho').checked);
   return new Promise(r=>o.toBlob(r,'image/jpeg',.93));
 }
 $('#bSave').onclick=async()=>{
@@ -408,9 +411,7 @@ $('#bSave').onclick=async()=>{
 
 /* ---------- прочее ---------- */
 $('#bClear').onclick=()=>{W=W0=M=null;rotDeg=0;setRotUI();P=[];LN=null;res=null;cropped=false;sync()};
-const exit=()=>{if(confirm('Закрыть программу?')){window.close();$('#bClear').click()}};
-$('#bExit').onclick=$('#x').onclick=exit;
-document.querySelectorAll('.wc i')[1].onclick=()=>{bgOff=!bgOff;if(res)check()};   // секретная кнопка «развернуть»: вкл/выкл проверку фона
+$('#ver').onclick=()=>{bgOff=!bgOff;if(res)check()};   // секрет: клик по версии в подвале включает/выключает проверку фона
 $('#list').onclick=e=>{
   const li=e.target.closest('li');
   if(!li||!M||[...li.parentNode.children].indexOf(li)!=23)return;
@@ -419,3 +420,4 @@ $('#list').onclick=e=>{
 };
 $('#bHelp').onclick=()=>$('#dlg').showModal();$('#dOk').onclick=()=>$('#dlg').close();
 sync();
+if(document.fonts)document.fonts.ready.then(sync);   // перерисовать canvas, когда подгрузятся шрифты

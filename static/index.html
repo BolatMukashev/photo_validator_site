@@ -2,33 +2,64 @@
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DV Photo Validator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=IBM+Plex+Mono:wght@400;600&family=Montserrat:wght@900&display=swap">
 <link rel="stylesheet" href="style.css"></head><body>
-<div id="win">
- <div id="tb"><span>ASTAR Photo Validator, ver. 8.1</span><span class="wc"><i>&#8212;</i><i>&#9744;</i><i id="x">&#10005;</i></span></div>
- <div id="body">
-  <h1><b>*ASTAR* ПРОВЕРКА ФОТО</b> <em>ВИЗА И ЛОТЕРЕЯ ГРИН КАРТА</em></h1>
-  <div id="bar">
-   <button id="bLoad">Загрузить</button><button id="bCrop">Обрезать</button><button id="bCheck" class="def">Проверить</button><button id="bSave">Сохранить</button><button id="bClear">Очистить</button><button id="bHelp">Инструкция</button><button id="bExit">Выход</button>
+<header class="site"><div class="wrap">
+ <span class="brand">DV Photo Validator</span>
+ <button id="bHelp" class="ghost">Инструкция</button>
+</div></header>
+
+<main class="wrap">
+ <section class="hero">
+  <h1>Проверка фото</h1>
+  <p>Виза и лотерея Green Card. Загрузите фото, поставьте линии на голову и глаза — мы проверим снимок по требованиям и подскажем, что исправить.</p>
+ </section>
+
+ <div id="main">
+  <div id="left">
+   <div id="stage">
+    <div id="view"><canvas id="cv" width="896" height="896"></canvas></div>
+   <div id="rot"><h3>Поворот</h3>
+   <div class="row"><button id="rL" title="Повернуть влево на 0,5°" aria-label="Повернуть влево на 0,5°">&#8634;</button><input type="range" id="rS" min="-15" max="15" step="0.1" value="0" aria-label="Поворот фото, градусы"><button id="rR" title="Повернуть вправо на 0,5°" aria-label="Повернуть вправо на 0,5°">&#8635;</button></div>
+   <div class="row"><output id="rV">0.0°</output><button id="rZ" class="ghost" title="Сбросить поворот">Сброс</button></div>
   </div>
-  <div id="rot"><span>Поворот</span><button id="rL" title="Повернуть влево на 0,5°">&#8634;</button><input type="range" id="rS" min="-15" max="15" step="0.1" value="0"><button id="rR" title="Повернуть вправо на 0,5°">&#8635;</button><output id="rV">0.0°</output><button id="rZ" title="Сбросить поворот">Сброс</button></div>
-  <div id="main">
-   <div id="view"><canvas id="cv" width="896" height="896"></canvas><div id="hint"></div><div id="banner" hidden></div><button id="bEnh" hidden title="Исправить фото: освещение, фон, детализация">&#10024; Исправить</button></div>
-   <div id="panel"><ul id="list"></ul>
-    <div id="sw">
-     <label class="sw"><span>виза</span><input type="checkbox" id="mLot" checked><i></i><span>лотерея</span></label>
-     <label class="sw"><span>скан</span><input type="checkbox" id="mPho" checked><i></i><span>фото</span></label>
-    </div></div>
+   </div>
+   <div id="under">
+    <fieldset id="sw"><legend>Режим проверки</legend>
+     <label class="ck" title="Снимите галочку — виза: допустимо 600–1200 px"><input type="checkbox" id="mLot" checked><i></i><span><b>Лотерея Green Card</b><small>Снимите галочку — виза: допустимо 600–1200 px</small></span></label>
+     <label class="ck" title="Снимите галочку — скан: проверки подмены фона и даты пропускаются"><input type="checkbox" id="mPho" checked><i></i><span><b>Фото с камеры</b><small>Снимите галочку — скан: проверки подмены фона и даты пропускаются</small></span></label>
+    </fieldset>
+   </div>
+  </div>
+
+  <div id="right">
+   <div id="bar">
+    <button id="bLoad">Загрузить</button><button id="bCrop">Обрезать</button><button id="bCheck">Проверить</button><button id="bSave">Сохранить</button><button id="bClear">Очистить</button>
+   </div>
+   <p id="hint"></p>
+   <div id="status">
+    <div id="banner" hidden></div>
+    <button id="bEnh" hidden title="Исправить фото: освещение, фон, детализация">Исправить</button>
+   </div>
+   <section id="panel">
+    <h3>Проверки</h3>
+    <ul id="list"></ul>
+   </section>
   </div>
  </div>
-</div>
+</main>
+
+<footer class="site foot"><div class="wrap"><span id="ver">DV Photo Validator, ver. 1.1</span></div></footer>
+
 <input type="file" id="f" accept="image/*" hidden>
 <dialog id="dlg"><h3>Инструкция</h3>
-<ol><li>Нажмите «Загрузить» (или перетащите фото в окно).</li>
+<ol><li>Нажмите «Загрузить» (или перетащите фото на экран с изображением).</li>
 <li>Если человек сидит не ровно — сначала поверните фото ползунком «Поворот» или кнопками ↺ ↻ (шаг 0,5°) так, чтобы глаза лежали на одной горизонтали. Поворот доступен только до обрезки.</li>
-<li>Линии уже стоят примерно — перетащите их мышью: красная — верх головы (с волосами), синяя — подбородок, зелёная — линия глаз, пунктир — ось лица (его можно двигать влево/вправо).</li>
-<li>«Обрезать» — квадратный кадр: лотерея — 600×600, виза — 900×900 (меняется в SIZE в app.js); голова ~60%, линия глаз ~62% от низа, выравнивание наклона. Режим выбирайте до обрезки. Линии можно подправить и снова нажать «Проверить».</li>
+<li>Линии уже стоят примерно — перетащите их мышью: красная — верх головы (с волосами), чёрная — подбородок, зелёная — линия глаз, пунктир — ось лица (его можно двигать влево/вправо).</li>
+<li>«Обрезать» — квадратный кадр: лотерея — 600×600, виза — 900×900; голова ~60%, линия глаз ~62% от низа, выравнивание наклона. Режим выбирайте до обрезки. Линии можно подправить и снова нажать «Проверить».</li>
 <li>«Проверить» — запуск тестов. «Сохранить» — скачает обрезанное фото и отчёт, оба в JPEG.</li></ol>
-<p><b>Линии:</b> красная — макушка, синяя — подбородок, зелёная — глаза, серая зона — допустимая высота глаз (56–69% от низа), пунктир — центр кадра.</p>
+<p><b>Линии:</b> красная — макушка, чёрная — подбородок, зелёная — глаза, серая зона — допустимая высота глаз (56–69% от низа), пунктир — центр кадра.</p>
 <p><b>Требования:</b> квадрат: лотерея — ровно 600×600 px, виза — 600–1200 px; JPEG, до 240 КБ, сжатие до 20:1, голова 50–69% высоты, глаза 56–69% от низа, sRGB 24 bit, светлый однородный фон, фото не старше 6 месяцев.</p>
 <p><b>Эвристики:</b> открытые глаза, красные глаза, тени, наклон/поворот, подмена фона определяются приблизительно — проверяйте глазами.</p>
 <button id="dOk" class="def">Закрыть</button></dialog>
